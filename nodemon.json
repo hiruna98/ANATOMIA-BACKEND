@@ -1,0 +1,6 @@
+{
+    "env":{
+        "MONGO_PWD" : "A70ixkrvA54NOtAK",
+        "BASE_URL" : "http://localhost:3000/"
+    }
+}
