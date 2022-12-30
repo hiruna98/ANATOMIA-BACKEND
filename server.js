@@ -1,8 +1,8 @@
 const http = require('http');
 const app = require('./app');
 
-const port = 80;
+const port = 3000;
 
 const server = http.createServer(app);
 
-server.listen(80);
+server.listen(port);

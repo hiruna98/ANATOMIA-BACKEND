@@ -4,7 +4,7 @@ const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
-const heartRoutes = require('./api/routes/heart');
+const organtRoutes = require('./api/routes/organ');
 
 mongoose.set('strictQuery', true);
 mongoose.connect('mongodb+srv://Anatomia:'+ process.env.MONGO_PWD+'@cluster0.lghksid.mongodb.net/?retryWrites=true&w=majority');
@@ -28,7 +28,7 @@ app.use((req,res,next)=>{
     next();
 });
 
-app.use('/heart',heartRoutes);
+app.use('/organ',organtRoutes);
 
 app.use((req, res, next) => {
     const error = new Error("Not found");

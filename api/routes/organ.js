@@ -1,8 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const Heart = require('../models/heart');
+const Organ = require('../models/organ');
 const mongoose = require('mongoose');
 const multer = require('multer');
+const fs = require('fs');
 
 const BASE_URL = "http://localhost:3000/";
 
@@ -20,8 +21,8 @@ const upload = multer({
 });
 
 router.get('/',(req,res,next) => {
-    Heart.find()
-    .select("_id name description organImage")
+  Organ.find()
+    .select("_id name description layer organImage")
     .exec()
     .then(docs => {
         if (docs.length >= 0) {
@@ -31,13 +32,14 @@ router.get('/',(req,res,next) => {
               var fileName = doc.organImage.split("\\");
               return {
                 name: doc.name,
+                layer: doc.layer,
                 description: doc.description,
                 organImage: doc.organImage,
                 organImage: BASE_URL+"uploads/"+fileName[1],
                 _id: doc._id,
                 request: {
                   type: "GET",
-                  url: BASE_URL+"heart/" + doc._id
+                  url: BASE_URL+"organ/" + doc._id
                 }
               };
             })
@@ -59,13 +61,14 @@ router.get('/',(req,res,next) => {
 
 router.post('/',upload.single('organImage'),(req,res,next) => {
     console.log(req.file);
-    const heart = new Heart({
+    const organ = new Organ({
         _id: new mongoose.Types.ObjectId(),
         name : req.body.name,
+        layer : req.body.layer,
         description: req.body.description,
         organImage: req.file.path
     });
-    Heart.find({name : req.body.name})
+    Organ.find({name : req.body.name})
     .exec()
     .then(doc => {
       if (doc.length >0) {
@@ -73,20 +76,21 @@ router.post('/',upload.single('organImage'),(req,res,next) => {
             error: "Organ already exist"
         });
       } else {
-        heart.save()
+        organ.save()
         .then(result => {
         console.log(result.organImage);
         var fileName = result.organImage.split("\\");
         res.status(201).json({
-          message: "Created product successfully",
+          message: "Created organ successfully",
           createdProduct: {
               name: result.name,
+              layer : result.layer,
               description: result.description,
               organImage: BASE_URL+"uploads/"+fileName[1],
               _id: result._id,
               request: {
                   type: 'GET',
-                  url: BASE_URL+"heart/" + result.name
+                  url: BASE_URL+"organ/" + result.name
               }
           }
         });
@@ -100,25 +104,20 @@ router.post('/',upload.single('organImage'),(req,res,next) => {
 });
 
 
-router.get('/:heartId',(req,res,next) => {
-    const id = req.params.heartId;
-    Heart.findOne({name : id})
-    .select('_id name description organImage')
+router.get('/:organId',(req,res,next) => {
+    const id = req.params.organId;
+    Organ.findOne({name : id})
+    .select('_id name description layer organImage')
     .exec()
     .then(doc => {
       if (doc) {
         var fileName = doc.organImage.split("\\");
         res.status(200).json({
-            organ:{
               name: doc.name,
+              layer: doc.layer,
               description: doc.description,
               organImage: BASE_URL+"uploads/"+fileName[1],
-              _id: doc._id,
-            },
-            request: {
-                type: 'GET',
-                url: BASE_URL+'heart/' + doc.name
-            }
+              _id: doc._id
         });
       }else {
         res
@@ -132,9 +131,12 @@ router.get('/:heartId',(req,res,next) => {
     });
 });
 
-router.put('/:heartId',(req,res,next) => {
-    const id = req.params.heartId;
-    Heart.updateMany({ name : id }, { description: req.body.description })
+router.put('/:organId',(req,res,next) => {
+    const id = req.params.organId;
+    Organ.updateMany({ name : id }, {
+      layer: req.body.layer, 
+      description: req.body.description 
+    })
     .exec()
     .then(result => {
     console.log(result);
@@ -148,19 +150,30 @@ router.put('/:heartId',(req,res,next) => {
     });
 });
 
-router.delete('/:heartId',(req,res,next) => {
-    const id = req.params.heartId;
-    Heart.remove({ name: id })
+router.delete('/:organId',(req,res,next) => {
+    const id = req.params.organId;
+    Organ.findOne({name : id})
+    .select('_id name description layer organImage')
     .exec()
-    .then(result => {
-      res.status(200).json(result);
-    })
-    .catch(err => {
-      console.log(err);
-      res.status(500).json({
-        error: err
-      });
-    });
+    .then(doc => {
+        fs.unlink(doc.organImage, (err) => {
+            if (err) {
+                throw err;
+            }else{
+              Organ.remove({ name: id })
+                .exec()
+                .then(result => {
+                  res.status(200).json(result);
+                })
+                .catch(err => {
+                  console.log(err);
+                  res.status(500).json({
+                    error: err
+                  });
+                });
+            }
+        });
+    })  
 });
 
 module.exports = router;
