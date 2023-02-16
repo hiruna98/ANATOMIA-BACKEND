@@ -35,6 +35,7 @@ router.get('/',(req,res,next) => {
                 layer: doc.layer,
                 description: doc.description,
                 organImage: doc.organImage,
+                displayName: doc.displayName,
                 organImage: BASE_URL+"uploads/"+fileName[1],
                 _id: doc._id,
                 request: {
@@ -66,7 +67,8 @@ router.post('/',upload.single('organImage'),(req,res,next) => {
         name : req.body.name,
         layer : req.body.layer,
         description: req.body.description,
-        organImage: req.file.path
+        organImage: req.file.path,
+        displayName: req.body.displayName,
     });
     Organ.find({name : req.body.name})
     .exec()
@@ -86,6 +88,7 @@ router.post('/',upload.single('organImage'),(req,res,next) => {
               name: result.name,
               layer : result.layer,
               description: result.description,
+              displayName: result.displayName,
               organImage: BASE_URL+"uploads/"+fileName[1],
               _id: result._id,
               request: {
@@ -116,6 +119,7 @@ router.get('/:organId',(req,res,next) => {
               name: doc.name,
               layer: doc.layer,
               description: doc.description,
+              displayName: doc.displayName,
               organImage: BASE_URL+"uploads/"+fileName[1],
               _id: doc._id
         });
@@ -135,7 +139,8 @@ router.put('/:organId',(req,res,next) => {
     const id = req.params.organId;
     Organ.updateMany({ name : id }, {
       layer: req.body.layer, 
-      description: req.body.description 
+      description: req.body.description,
+      displayName: req.body.displayName 
     })
     .exec()
     .then(result => {

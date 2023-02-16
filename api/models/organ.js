@@ -4,6 +4,7 @@ const organSchema = mongoose.Schema({
     _id: mongoose.Schema.Types.ObjectId,
     name: String,
     description: String,
+    displayName: String,
     layer: String,
     organImage: String
 });
